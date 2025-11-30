@@ -6,21 +6,16 @@ use std::str::FromStr;
 
 /// Return lines as Vec<&str> (no empty final line).
 pub fn lines(input: &str) -> Vec<&str> {
-    input.lines().collect()
-}
-
-/// Parse each line as an integer.
-pub fn lines_as_i64(input: &str) -> Vec<i64> {
     input
         .lines()
         .filter(|l| !l.is_empty())
-        .map(|l| l.parse::<i64>().expect("invalid integer"))
+        .map(|l| l.trim())
         .collect()
 }
 
 /// Parse each line with a custom parser function.
 pub fn map_lines<T>(input: &str, f: impl Fn(&str) -> T) -> Vec<T> {
-    input.lines().map(f).collect()
+    input.lines().filter(|l| !l.is_empty()).map(f).collect()
 }
 
 /// Generic, works with any type that implements FromStr
@@ -40,10 +35,31 @@ where
 // Delimited inputs
 // ------------------------------------------------------------
 
-/// Single delimiter-separated line of i64 values.
-pub fn csv_i64(input: &str, sep: char) -> Vec<i64> {
+/// Split each line by a separator into Vec<Vec<&str>>.
+pub fn split_lines(input: &str, sep: char) -> Vec<Vec<&str>> {
+    input.lines().map(|l| l.split(sep).collect()).collect()
+}
+
+/// Loop over lines and split a line and parse each element using FromStr.
+pub fn split_parse_lines<T: FromStr>(input: &str, sep: char) -> Vec<Vec<T>>
+where
+    <T as FromStr>::Err: Debug,
+{
     input
-        .trim()
+        .lines()
+        .filter(|l| !l.is_empty())
+        .map(|l| {
+            l.split(sep)
+                .filter(|s| !s.is_empty())
+                .map(|s| s.trim().parse::<T>().expect("parse error"))
+                .collect()
+        })
+        .collect()
+}
+
+/// Single delimiter-separated line of i64 values.
+pub fn split_line_i64(line: &str, sep: char) -> Vec<i64> {
+    line.trim()
         .split(sep)
         .filter(|s| !s.is_empty())
         .map(|s| s.parse::<i64>().expect("invalid integer"))
@@ -51,20 +67,14 @@ pub fn csv_i64(input: &str, sep: char) -> Vec<i64> {
 }
 
 /// Single whitespace-separated line of i64 values.
-pub fn whitespace_i64(input: &str) -> Vec<i64> {
-    input
-        .split_whitespace()
+pub fn whitespace_line_i64(line: &str) -> Vec<i64> {
+    line.split_whitespace()
         .map(|s| s.parse::<i64>().expect("invalid integer"))
         .collect()
 }
 
-/// Split each line by a separator into Vec<Vec<&str>>.
-pub fn split_lines(input: &str, sep: char) -> Vec<Vec<&str>> {
-    input.lines().map(|l| l.split(sep).collect()).collect()
-}
-
 /// Split a line and parse each element using FromStr.
-pub fn split_parse<T: FromStr>(line: &str, sep: char) -> Vec<T>
+pub fn split_line_parse<T: FromStr>(line: &str, sep: char) -> Vec<T>
 where
     <T as FromStr>::Err: Debug,
 {
@@ -114,17 +124,28 @@ pub fn blocks(input: &str) -> Vec<&str> {
 
 /// Blocks as Vec<Vec<&str>> of lines.
 pub fn blocks_of_lines(input: &str) -> Vec<Vec<&str>> {
-    input.split("\n\n").map(|b| b.lines().collect()).collect()
+    input
+        .split("\n\n")
+        .map(|b| {
+            b.lines()
+                .map(|l| l.trim())
+                .filter(|l| !l.is_empty())
+                .collect()
+        })
+        .collect()
 }
 
-/// Blocks where each line is an integer.
-pub fn blocks_of_i64(input: &str) -> Vec<Vec<i64>> {
+/// Blocks where each line is parsed..
+pub fn parse_blocks<T: FromStr>(input: &str) -> Vec<Vec<T>>
+where
+    <T as FromStr>::Err: Debug,
+{
     input
         .split("\n\n")
         .map(|b| {
             b.lines()
                 .filter(|l| !l.is_empty())
-                .map(|l| l.parse::<i64>().expect("invalid integer"))
+                .map(|l| l.trim().parse::<T>().expect("invalid integer"))
                 .collect()
         })
         .collect()
