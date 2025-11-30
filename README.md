@@ -9,6 +9,7 @@ This repo is based on this [AOC Rust template](https://github.com/fspoettel/adve
 ## Benchmarks
 
 As per the benchmarks referenced below, all days can be solved in less than a second on a i7-13700k @ 5.3 GHz.
+
 Part 1 and 2 of each day were implemented to be self contained, meaning that both parts will separately parse the input and can be ran individually.
 This however implies redundant input parsing when all days and parts are benchmarked together, as you parse the same input twice per day.
 Lastly, when both parts could be solved simultaneously (e.g. day 21), the total time required to solve the problem is effectively duplicated in the table below.
